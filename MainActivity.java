@@ -80,14 +80,345 @@ TextView messageBox = (TextView) findViewById(R.id.message_box);
 messageBox.setText(word1 + " " + word2);
 }
 
-
 placedTiles.push(tile);
-
-
-
 
 return true;
 }
 return false;
 }
 }
+  
+private class DragListener implements View.OnDragListener {
+
+  
+public boolean onDrag(View v, DragEvent event) {
+int action = event.getAction();
+switch (event.getAction()) {
+case DragEvent.ACTION_DRAG_STARTED:
+v.setBackgroundColor(LIGHT_BLUE);
+v.invalidate();
+return true;
+    
+case DragEvent.ACTION_DRAG_ENTERED:
+v.setBackgroundColor(LIGHT_GREEN);
+v.invalidate();
+return true;
+
+case DragEvent.ACTION_DRAG_EXITED:
+v.setBackgroundColor(LIGHT_BLUE);
+v.invalidate();
+return true;
+
+case DragEvent.ACTION_DRAG_ENDED:
+v.setBackgroundColor(Color.WHITE);
+v.invalidate();
+return true;
+
+case DragEvent.ACTION_DROP:
+// Dropped, reassign Tile to the target Layout
+LetterTile tile = (LetterTile) event.getLocalState();
+tile.moveToViewGroup((ViewGroup) v);
+
+if (stackedLayout.empty()) {
+TextView messageBox = (TextView) findViewById(R.id.message_box);
+messageBox.setText(word1 + " " + word2);
+}
+placedTiles.push(tile);
+return true;
+}
+
+return false;
+}
+}
+
+
+
+
+
+
+public boolean onStartGame(View view) {
+
+
+
+
+
+
+// START reset any previous game on start
+
+
+LinearLayout word1LinearLayout = (LinearLayout)findViewById(R.id.word1);
+
+
+word1LinearLayout.removeAllViews();
+
+
+
+
+
+
+LinearLayout word2LinearLayout = (LinearLayout)findViewById(R.id.word2);
+
+
+word2LinearLayout.removeAllViews();
+
+
+
+
+
+
+stackedLayout.clear();
+
+
+// END reset any previous game on start
+
+
+
+
+
+
+
+
+
+
+TextView messageBox = (TextView) findViewById(R.id.message_box);
+
+
+messageBox.setText("Game started");
+
+
+
+
+
+
+//randomly pick 2 words and store as the answer
+
+
+int maxLength = words.size();
+
+
+// maxLength is excluded, (maxLenght -1) is top of range
+
+
+int randomIndex = random.nextInt(maxLength - 1) + 1;
+
+
+word1 = words.get(randomIndex);
+
+
+
+
+
+
+randomIndex = random.nextInt(maxLength - 1) + 1;
+
+
+word2 = words.get(randomIndex);
+
+
+
+
+
+
+// shuffle letters while preserving word order
+
+
+String scrambledWord = "";
+
+
+boolean scrambled = false;
+
+
+int i = 0, j = 0;
+
+
+
+
+
+
+while(!scrambled){
+
+
+randomIndex = random.nextInt(3 - 1) + 1;
+
+
+
+
+
+
+if(randomIndex == 1) {
+
+
+
+
+
+
+scrambledWord += word1.charAt(i);
+
+
+// if it was the last char, (word is now exhausted)
+
+
+if (word1.length() <= i+1) {
+
+
+// insert all rest of second word
+
+
+for (; j < word2.length(); j++) {
+
+
+scrambledWord += word2.charAt(j);
+
+
+}
+
+
+// done
+
+
+scrambled = true;
+
+
+} else {
+
+
+i++;
+
+
+}
+
+
+} else {
+
+
+
+
+
+
+scrambledWord += word2.charAt(j);
+
+
+// if it was the last char, (word is now exhausted)
+
+
+if (word2.length() <= j+1) {
+
+
+// insert all rest of first word
+
+
+for (; i < word1.length(); i++) {
+
+
+scrambledWord += word1.charAt(i);
+
+
+}
+
+
+// done
+
+
+scrambled = true;
+
+
+} else {
+
+
+j++;
+
+
+}
+
+
+
+
+
+
+}
+
+
+}
+
+
+messageBox.setText(scrambledWord);
+
+
+
+
+
+
+// create new LetterTile objects representing each letter of
+
+
+// the string and push them (in reverse order!) onto stackedLayout.
+
+
+for(int index = scrambledWord.length() - 1; index >= 0; index--) {
+
+
+
+
+
+
+stackedLayout.push(new LetterTile(this, scrambledWord.charAt(index)));
+
+
+}
+
+
+
+
+
+
+return true;
+
+
+}
+
+
+
+
+
+
+public boolean onUndo(View view) {
+
+
+
+
+
+
+// pop the most recent tile from placedTiles and use
+
+
+// moveToViewGroup to move it back to the stackedLayout.
+
+
+if(!placedTiles.empty()) {
+
+
+LetterTile popped = placedTiles.pop();
+
+
+(popped).moveToViewGroup((ViewGroup) stackedLayout);
+
+
+return true;
+
+
+}
+
+
+return false;
+
+
+}
+
+
+}
+
+
+
+
+
+
